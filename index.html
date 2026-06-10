@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="像素风游戏素材生成网站：快速生成角色、道具、地块与特效的提示词、色板和像素预览。"
+    />
+    <title>Pixel Forge｜像素游戏素材生成器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;800&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="site-header">
+        <nav class="nav-shell" aria-label="主导航">
+          <a class="brand" href="#top" aria-label="Pixel Forge 首页">
+            <span class="brand-mark">PF</span>
+            <span>Pixel Forge</span>
+          </a>
+          <div class="nav-links">
+            <a href="#generator">生成器</a>
+            <a href="#workflow">工作流</a>
+            <a href="#library">素材库</a>
+          </div>
+        </nav>
+      </header>
+
+      <main id="top">
+        <section class="hero section-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">像素风游戏资产工作台</p>
+            <h1>把灵感快速变成可迭代的像素素材方案。</h1>
+            <p class="hero-text">
+              为独立游戏快速规划角色、道具、地块、UI 图标与技能特效。选择类型、风格与尺寸，立即生成可复制的 AI 提示词、配色方案和像素预览。
+            </p>
+            <div class="hero-actions">
+              <a class="button primary" href="#generator">开始生成</a>
+              <a class="button ghost" href="#library">查看示例</a>
+            </div>
+          </div>
+          <div class="hero-card" aria-label="像素城堡预览">
+            <div class="pixel-scene" role="img" aria-label="一座夜晚中的像素城堡、月亮和星星"></div>
+            <div class="stat-row">
+              <span><strong>32×32</strong> 推荐图块</span>
+              <span><strong>12 色</strong> 限制色板</span>
+              <span><strong>PNG</strong> 导出</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="generator" class="generator section-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Asset Generator</p>
+            <h2>素材生成控制台</h2>
+            <p>调整参数后会自动生成提示词、命名建议、色板和一个简易像素预览。</p>
+          </div>
+
+          <div class="generator-layout">
+            <form class="control-panel" id="assetForm">
+              <label>
+                素材类型
+                <select id="assetType" name="assetType">
+                  <option value="hero">主角角色</option>
+                  <option value="enemy">敌人怪物</option>
+                  <option value="item">道具图标</option>
+                  <option value="tile">地图地块</option>
+                  <option value="effect">技能特效</option>
+                </select>
+              </label>
+
+              <label>
+                游戏主题
+                <input id="theme" name="theme" type="text" value="月光森林中的炼金冒险" />
+              </label>
+
+              <label>
+                画布尺寸
+                <select id="size" name="size">
+                  <option value="16">16×16</option>
+                  <option value="32" selected>32×32</option>
+                  <option value="48">48×48</option>
+                  <option value="64">64×64</option>
+                </select>
+              </label>
+
+              <label>
+                风格方向
+                <select id="style" name="style">
+                  <option value="cozy">温暖治愈</option>
+                  <option value="dark">暗黑地牢</option>
+                  <option value="arcade">复古街机</option>
+                  <option value="fantasy">奇幻童话</option>
+                </select>
+              </label>
+
+              <label>
+                关键词
+                <textarea id="keywords" name="keywords" rows="4">发光蘑菇、斗篷、铜色护目镜、轻微轮廓光</textarea>
+              </label>
+
+              <button class="button primary full" type="button" id="generateBtn">生成素材方案</button>
+            </form>
+
+            <div class="result-panel">
+              <div class="preview-card">
+                <div class="pixel-avatar" id="pixelPreview" aria-label="生成的像素素材预览"></div>
+                <div>
+                  <p class="result-label">建议文件名</p>
+                  <h3 id="fileName">hero_moon_forest_alchemist_32.png</h3>
+                </div>
+              </div>
+
+              <div class="palette" id="palette" aria-label="推荐色板"></div>
+
+              <div class="prompt-box">
+                <div class="prompt-header">
+                  <span>可复制提示词</span>
+                  <button type="button" id="copyBtn">复制</button>
+                </div>
+                <pre id="promptOutput"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" class="workflow section-grid">
+          <div class="section-heading compact">
+            <p class="eyebrow">Production Flow</p>
+            <h2>适合小团队的三步流程</h2>
+          </div>
+          <div class="steps">
+            <article>
+              <span>01</span>
+              <h3>定义限制</h3>
+              <p>先确定尺寸、色数、镜头角度和动画帧数，避免素材风格失控。</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>批量探索</h3>
+              <p>用生成器快速产出多个提示词版本，挑选轮廓最清晰的方向继续细化。</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>手工精修</h3>
+              <p>导入 Aseprite、LibreSprite 或游戏引擎编辑器，做像素级清理与动画。</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="library" class="library section-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Starter Library</p>
+            <h2>常用素材模板</h2>
+          </div>
+          <div class="asset-grid">
+            <article class="asset-card grass"><span></span><h3>草地地块</h3><p>无缝平铺、边缘变体、四季换色。</p></article>
+            <article class="asset-card potion"><span></span><h3>药水图标</h3><p>高对比轮廓、透明瓶身、库存 UI 友好。</p></article>
+            <article class="asset-card slime"><span></span><h3>史莱姆敌人</h3><p>圆润剪影、2 帧待机、击中闪白。</p></article>
+            <article class="asset-card flame"><span></span><h3>火焰特效</h3><p>4 帧循环、外亮内暗、可叠加粒子。</p></article>
+          </div>
+        </section>
+      </main>
+    </div>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script defer src="/src/main.js"></script>
+  </body>
+</html>
