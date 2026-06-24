@@ -5,18 +5,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SNAPIRRO HTML Presentation</title>
   <style>
-    html, body { margin: 0; width: 100%; height: 100%; background: #101d36; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    .stage { position: fixed; inset: 0; display: grid; place-items: center; }
-    .slide { max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; object-fit: contain; display: none; background: #f7f6f2; }
-    .slide.active { display: block; }
-    .counter { position: fixed; right: 24px; bottom: 18px; color: rgba(255,255,255,.78); background: rgba(0,0,0,.35); padding: 6px 12px; border-radius: 999px; font-size: 14px; }
-    .hint { position: fixed; left: 24px; bottom: 18px; color: rgba(255,255,255,.58); font-size: 13px; }
+    :root {
+      --bg: #101d36;
+      --panel: rgba(8, 16, 32, .42);
+      --text: rgba(255, 255, 255, .86);
+      --muted: rgba(255, 255, 255, .58);
+      --accent: #20a4ad;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 35%, #1b2d52 0%, var(--bg) 45%, #081225 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      perspective: 1400px;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+      opacity: 0;
+      transform: translateX(3.5vw) scale(.985);
+      filter: blur(8px);
+      transition:
+        opacity 520ms ease,
+        transform 620ms cubic-bezier(.22, .61, .36, 1),
+        filter 520ms ease;
+      pointer-events: none;
+      will-change: opacity, transform, filter;
+      background: #f7f6f2;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    .slide.exit-left {
+      transform: translateX(-3.5vw) scale(.985);
+      opacity: 0;
+      filter: blur(8px);
+      z-index: 1;
+    }
+
+    .slide.exit-right {
+      transform: translateX(3.5vw) scale(.985);
+      opacity: 0;
+      filter: blur(8px);
+      z-index: 1;
+    }
+
+    .topbar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, .12);
+      z-index: 10;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #20a4ad, #d7ad54, #f05aa7);
+      transition: width 420ms ease;
+    }
+
+    .counter,
+    .hint {
+      position: fixed;
+      z-index: 10;
+      color: var(--text);
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, .12);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, .18);
+      user-select: none;
+    }
+
+    .counter {
+      right: 24px;
+      bottom: 20px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      letter-spacing: .02em;
+    }
+
+    .hint {
+      left: 24px;
+      bottom: 20px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .click-zone {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      cursor: pointer;
+    }
+
+    @media (max-width: 720px) {
+      .hint { display: none; }
+      .counter { right: 14px; bottom: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide,
+      .progress {
+        transition: none;
+        filter: none;
+      }
+    }
   </style>
 </head>
 <body>
-  <main class="stage" id="stage"></main>
-  <div class="hint">← / → 翻页，F 全屏</div>
+  <main class="stage" id="stage" aria-label="SNAPIRRO HTML 演示文稿"></main>
+  <div class="click-zone" id="clickZone" title="点击进入下一页"></div>
+  <div class="topbar"><div class="progress" id="progress"></div></div>
+  <div class="hint">点击 / ← / → 翻页，F 全屏</div>
   <div class="counter" id="counter"></div>
+
   <script>
     const slides = [
       "slide-01.png",
@@ -39,32 +173,83 @@
       "slide-18.png",
       "slide-19.png"
     ];
+
     const stage = document.getElementById('stage');
     const counter = document.getElementById('counter');
+    const progress = document.getElementById('progress');
+    const clickZone = document.getElementById('clickZone');
     let current = 0;
+    let last = 0;
+    let startX = null;
+
     slides.forEach((src, i) => {
       const img = document.createElement('img');
       img.className = 'slide';
       img.src = src;
       img.alt = `Slide ${String(i + 1).padStart(2, '0')}`;
+      img.loading = i === 0 ? 'eager' : 'lazy';
       stage.appendChild(img);
     });
+
     const imgs = [...document.querySelectorAll('.slide')];
-    function show(i) {
-      current = Math.max(0, Math.min(slides.length - 1, i));
-      imgs.forEach((img, idx) => img.classList.toggle('active', idx === current));
+
+    function show(index) {
+      const next = Math.max(0, Math.min(slides.length - 1, index));
+      if (next === current && imgs[current].classList.contains('active')) return;
+
+      last = current;
+      current = next;
+      const movingForward = current >= last;
+
+      imgs.forEach((img, idx) => {
+        img.classList.remove('active', 'exit-left', 'exit-right');
+        if (idx === current) {
+          img.classList.add('active');
+        } else if (idx === last) {
+          img.classList.add(movingForward ? 'exit-left' : 'exit-right');
+        }
+      });
+
       counter.textContent = `${current + 1} / ${slides.length}`;
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
     }
+
+    function next() { show(current + 1); }
+    function prev() { show(current - 1); }
+
     function toggleFullscreen() {
       if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
       else document.exitFullscreen?.();
     }
+
     document.addEventListener('keydown', e => {
-      if (['ArrowRight', 'PageDown', ' '].includes(e.key)) show(current + 1);
-      if (['ArrowLeft', 'PageUp'].includes(e.key)) show(current - 1);
+      if (['ArrowRight', 'PageDown', ' '].includes(e.key)) next();
+      if (['ArrowLeft', 'PageUp'].includes(e.key)) prev();
       if (e.key.toLowerCase() === 'f') toggleFullscreen();
+      if (e.key === 'Home') show(0);
+      if (e.key === 'End') show(slides.length - 1);
     });
-    document.addEventListener('click', () => show(current + 1));
+
+    clickZone.addEventListener('click', next);
+
+    document.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      if (startX === null) return;
+      const endX = e.changedTouches[0].clientX;
+      const delta = endX - startX;
+      if (Math.abs(delta) > 48) delta < 0 ? next() : prev();
+      startX = null;
+    }, { passive: true });
+
+    // 预加载前几张图片，让现场演示翻页更顺滑
+    slides.slice(1, 5).forEach(src => {
+      const preload = new Image();
+      preload.src = src;
+    });
+
     show(0);
   </script>
 </body>
