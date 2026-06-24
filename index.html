@@ -10,8 +10,6 @@
       --panel: rgba(8, 16, 32, .42);
       --text: rgba(255, 255, 255, .86);
       --muted: rgba(255, 255, 255, .58);
-      --accent: #20a4ad;
-      --gold: #d7ad54;
     }
 
     * { box-sizing: border-box; }
@@ -22,8 +20,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 35%, #1b2d52 0%, var(--bg) 45%, #081225 100%);
+      background: radial-gradient(circle at 50% 35%, #1b2d52 0%, var(--bg) 45%, #081225 100%);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -32,8 +29,8 @@
       inset: 0;
       display: grid;
       place-items: center;
-      perspective: 1400px;
       overflow: hidden;
+      background: #101d36;
     }
 
     .slide {
@@ -57,8 +54,9 @@
       max-height: 100vh;
       object-fit: contain;
       background: #f7f6f2;
-      transform: scale(1.015);
-      filter: saturate(.88) contrast(1.08) brightness(.92);
+      transform: scale(1.006);
+      filter: blur(2px) brightness(.98) contrast(1.02);
+      will-change: opacity, transform, filter;
     }
 
     .slide.active {
@@ -68,7 +66,7 @@
     }
 
     .slide.active img {
-      animation: etchedReveal 960ms cubic-bezier(.2, .72, .2, 1) both;
+      animation: dissolveIn 420ms cubic-bezier(.2, .72, .24, 1) both;
     }
 
     .slide.exit-left,
@@ -79,102 +77,79 @@
 
     .slide.exit-left img,
     .slide.exit-right img {
-      animation: etchedFade 720ms cubic-bezier(.4, 0, .2, 1) both;
+      animation: dissolveOut 260ms ease-out both;
     }
 
+    /* 溶解颗粒层：快速闪现，避免蚀刻扫光的拖沓感 */
     .slide.active::before,
-    .slide.active::after {
+    .slide.exit-left::before,
+    .slide.exit-right::before {
       content: "";
       position: absolute;
-      inset: -12%;
+      inset: 0;
       z-index: 4;
       pointer-events: none;
-    }
-
-    /* 蚀刻纹理：斜向细线 + 颗粒感，像被光刻出来的渐变遮罩 */
-    .slide.active::before {
       background:
-        repeating-linear-gradient(115deg,
-          rgba(255,255,255,0) 0px,
-          rgba(255,255,255,0) 6px,
-          rgba(255,255,255,.28) 7px,
-          rgba(255,255,255,0) 10px),
-        repeating-linear-gradient(25deg,
-          rgba(215,173,84,0) 0px,
-          rgba(215,173,84,0) 12px,
-          rgba(215,173,84,.16) 13px,
-          rgba(215,173,84,0) 16px);
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,.30) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 72%, rgba(255,255,255,.22) 0 1px, transparent 2px),
+        radial-gradient(circle at 46% 36%, rgba(255,255,255,.26) 0 1px, transparent 2px),
+        radial-gradient(circle at 62% 82%, rgba(255,255,255,.18) 0 1px, transparent 2px),
+        radial-gradient(circle at 84% 24%, rgba(255,255,255,.22) 0 1px, transparent 2px),
+        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.10) 0 1px, transparent 2px 7px);
+      background-size: 90px 90px, 120px 120px, 140px 140px, 100px 100px, 160px 160px, 18px 18px;
       mix-blend-mode: screen;
       opacity: 0;
-      transform: translateX(-36%) skewX(-8deg);
-      animation: etchLines 980ms ease-out both;
     }
 
-    /* 渐变光刃：从左到右扫过，制造“蚀刻渐变”入场 */
-    .slide.active::after {
-      background: linear-gradient(108deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0) 35%,
-        rgba(255,255,255,.74) 47%,
-        rgba(215,173,84,.34) 52%,
-        rgba(32,164,173,.22) 58%,
-        rgba(255,255,255,0) 70%,
-        rgba(255,255,255,0) 100%);
-      mix-blend-mode: screen;
-      opacity: 0;
-      transform: translateX(-58%) skewX(-10deg);
-      animation: etchSweep 980ms cubic-bezier(.16, .84, .36, 1) both;
+    .slide.active::before {
+      animation: dissolveGrainIn 420ms ease-out both;
     }
 
-    @keyframes etchedReveal {
+    .slide.exit-left::before,
+    .slide.exit-right::before {
+      animation: dissolveGrainOut 260ms ease-out both;
+    }
+
+    @keyframes dissolveIn {
       0% {
         opacity: 0;
-        transform: scale(1.035) translateX(1.8vw);
-        filter: blur(10px) saturate(.45) contrast(1.36) brightness(1.18);
-        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+        transform: scale(1.014);
+        filter: blur(7px) brightness(1.08) contrast(1.12) saturate(.9);
       }
-      24% {
-        opacity: .58;
-        clip-path: polygon(0 0, 36% 0, 29% 100%, 0 100%);
-      }
-      58% {
-        opacity: 1;
-        clip-path: polygon(0 0, 82% 0, 74% 100%, 0 100%);
-        filter: blur(2px) saturate(.8) contrast(1.16) brightness(1.06);
+      45% {
+        opacity: .72;
+        filter: blur(3px) brightness(1.04) contrast(1.06) saturate(.95);
       }
       100% {
         opacity: 1;
-        transform: scale(1) translateX(0);
-        filter: blur(0) saturate(1) contrast(1) brightness(1);
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        transform: scale(1);
+        filter: blur(0) brightness(1) contrast(1) saturate(1);
       }
     }
 
-    @keyframes etchedFade {
+    @keyframes dissolveOut {
       0% {
         opacity: 1;
-        transform: scale(1) translateX(0);
-        filter: blur(0) saturate(1) contrast(1) brightness(1);
+        transform: scale(1);
+        filter: blur(0) brightness(1) contrast(1);
       }
       100% {
         opacity: 0;
-        transform: scale(.992) translateX(-1.2vw);
-        filter: blur(8px) saturate(.6) contrast(1.22) brightness(.78);
+        transform: scale(.998);
+        filter: blur(4px) brightness(.9) contrast(1.08) saturate(.88);
       }
     }
 
-    @keyframes etchLines {
-      0% { opacity: 0; transform: translateX(-42%) skewX(-8deg); }
-      18% { opacity: .88; }
-      62% { opacity: .45; }
-      100% { opacity: 0; transform: translateX(42%) skewX(-8deg); }
+    @keyframes dissolveGrainIn {
+      0% { opacity: .72; transform: scale(1.04); }
+      55% { opacity: .36; }
+      100% { opacity: 0; transform: scale(1); }
     }
 
-    @keyframes etchSweep {
-      0% { opacity: 0; transform: translateX(-64%) skewX(-10deg); }
-      20% { opacity: .9; }
-      64% { opacity: .62; }
-      100% { opacity: 0; transform: translateX(64%) skewX(-10deg); }
+    @keyframes dissolveGrainOut {
+      0% { opacity: 0; transform: scale(1); }
+      40% { opacity: .42; }
+      100% { opacity: 0; transform: scale(1.025); }
     }
 
     .topbar {
@@ -191,7 +166,7 @@
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, #20a4ad, #d7ad54, #f05aa7);
-      transition: width 420ms ease;
+      transition: width 260ms ease;
     }
 
     .counter,
@@ -241,12 +216,10 @@
       .slide,
       .slide img,
       .slide::before,
-      .slide::after,
       .progress {
         animation: none !important;
         transition: none !important;
         filter: none !important;
-        clip-path: none !important;
       }
     }
   </style>
